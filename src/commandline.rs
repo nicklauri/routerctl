@@ -69,12 +69,12 @@ impl Args {
         }
 
         // can use unwrap_or, but whatever, iduncare
-        if let Some(f) = PARSER.value_of("black_list_file").or(Some(&*DEFAULT_BLACK_LIST)) {
+        if let Some(f) = PARSER.value_of("black_list_file").or_else(|| Some(&*DEFAULT_BLACK_LIST)) {
             if Path::new(f).is_file() {
                 // str.split_whitespace > str.lines + str.trim
                 // iter.filter is simple but less details
                 let mut list = vec![];
-                String::from_utf8_lossy(&std::fs::read(f).expect(&format!("can't read '{}'", f)))
+                String::from_utf8_lossy(&std::fs::read(f).unwrap_or_else(|_| panic!("can't read '{}'", f)))
                     .split_whitespace().for_each(|l| {
                         if super::router::MAC_VALIDATE.is_match(l) {
                             list.push(l.to_string());

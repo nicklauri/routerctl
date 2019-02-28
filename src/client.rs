@@ -48,7 +48,7 @@ impl Client {
     }
 
     pub fn create_request_header(r: &str, d: &str) -> String {
-        if d.len() > 0 {
+        if !d.is_empty() {
             format!(concat!("POST {} HTTP/1.1\r\n",
                 "Host: 192.168.1.1\r\n",
                 "Accept: */*\r\n",

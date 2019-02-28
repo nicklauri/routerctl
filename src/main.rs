@@ -1,9 +1,9 @@
 // #![allow(warnings)]
 use std::io::Error;
 
-const VERSION: &'static str = "0.1";
-const AUTHOR: &'static str = "Nick Lauri <khoanta.96@gmail.com>";
-const ROUTER_DEFAULT_ADDR: &'static str = "192.168.1.1:80";
+const VERSION: &str = "0.1";
+const AUTHOR: & str = "Nick Lauri <khoanta.96@gmail.com>";
+const ROUTER_DEFAULT_ADDR: &str = "192.168.1.1:80";
 
 mod client;
 mod commandline;

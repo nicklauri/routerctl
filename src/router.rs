@@ -81,12 +81,12 @@ pub fn macflt_status() -> Result<(), Error> {
     let macflt_html = client::get("/mac_filter.html")?;
 
     let status = match MACFLT_STATUS.captures(&macflt_html) {
-        Some(thing) => if &thing[1] == "1" { true } else { false },
+        Some(thing) => &thing[1] == "1",
         None => return Err(Error::new(ErrorKind::Other, "match MACFLT_STATUS failed"))
     };
 
     let mode = match MACFLT_MODE.captures(&macflt_html) {
-        Some(thing) => if &thing[1] == "1" { true } else { false },
+        Some(thing) => &thing[1] == "1",
         None => return Err(Error::new(ErrorKind::Other, "match MACFLT_MODE failed"))
     };
 
@@ -113,7 +113,7 @@ pub fn macflt_status() -> Result<(), Error> {
 pub fn active_clients() -> Result<(), Error> {
     let laninfo_html = client::get("/laninfo.html")?;
     let list: Vec<Vec<Cell>> = CLIENTS_LIST.captures_iter(&laninfo_html).map(|c| {
-        c[1].to_string().split("|").map(Cell::new).collect()
+        c[1].to_string().split('|').map(Cell::new).collect()
     }).collect();
 
     let mut table = Table::new();
