@@ -1,3 +1,24 @@
+// MIT License
+
+// Copyright (c) 2019 Nick Lauri
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 use std::sync::Arc;
 use std::path::Path;
@@ -47,26 +68,19 @@ impl Args {
         args.password = PARSER.value_of("password").unwrap_or("admin");
         args.router = PARSER.value_of("router").unwrap_or(super::ROUTER_DEFAULT_ADDR);
 
-        // can replace this with iter.all->map->collect, but less details
-        if let Some(iter) = PARSER.values_of("add_white_list") {
-            iter.clone().for_each(|m| {
-                if !super::router::MAC_VALIDATE.is_match(&m) {
-                    panic!(format!("routerctl::Args::parse: ERR: invalid MAC: '{}'", m));
-                }
-            });
+        // iter.find returns Option<Self::Item> => Option.map to get it out
+        args.add_white_list = PARSER.values_of("add_white_list").map(|iter| {
+            iter.clone().find(|m| !super::router::MAC_VALIDATE.is_match(m))
+                .map(|m| panic!("routerctl::Args::parse: ERR: invalid MAC: '{}'", m));
+            iter.collect()
+        });
 
-            args.add_white_list = Some(iter.collect());
-        }
+        args.add_black_list = PARSER.values_of("add_black_list").map(|iter| {
+            iter.clone().find(|m| !super::router::MAC_VALIDATE.is_match(m))
+                .map(|m| panic!("routerctl::Args::parse: ERR: invalid MAC: '{}'", m));
+            iter.collect()
+        });
 
-        if let Some(iter) = PARSER.values_of("add_black_list") {
-            iter.clone().for_each(|m| {
-                if !super::router::MAC_VALIDATE.is_match(&m) {
-                    panic!(format!("routerctl::Args::parse: ERR: invalid MAC: '{}'", m));
-                }
-            });
-
-            args.add_black_list = Some(iter.collect());
-        }
 
         // can use unwrap_or, but whatever, iduncare
         if let Some(f) = PARSER.value_of("black_list_file").or_else(|| Some(&*DEFAULT_BLACK_LIST)) {
