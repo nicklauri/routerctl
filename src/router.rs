@@ -15,9 +15,7 @@ macro_rules! onoff {
 lazy_static! {
     pub static ref LOGIN_VALIDATE: Regex= Regex::new(r"login.html").unwrap();
     pub static ref MAC_VALIDATE: Regex = Regex::new(r"^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$").unwrap();
-
     pub static ref CLIENTS_LIST: Regex = Regex::new(r"client_list\[\d+\]='([^']+)';").unwrap();
-
     pub static ref MACFLT_STATUS: Regex = Regex::new(r"MacFltEnable=([01]);").unwrap();
     pub static ref MACFLT_MODE: Regex = Regex::new(r"MacFltMode=([01]);").unwrap();
     pub static ref MACFLT_LIST: Regex = Regex::new(r#"Mac:"([^"]+)""#).unwrap();
@@ -46,31 +44,19 @@ pub fn macflt_enable() -> Result<(), Error> {
     // entries at the most is couples dozen, doesn't need to optimize so much
     // if it's ok if 2 same macs
     let mut list: Vec<&str> = Vec::new();
-    if let Some(l) = &ARGS.black_list_file {
-        l.iter().for_each(|m| {
-            list.push(m);
-        });
-    }
-
-    if let Some(l) = &ARGS.add_black_list {
-        l.iter().for_each(|m| {
-            list.push(&m);
-        });
-    }
+    ARGS.black_list_file.iter().for_each(|l| l.iter().for_each(|m| list.push(m)));
+    ARGS.add_black_list.iter().for_each(|l| l.iter().for_each(|m| list.push(&m)));
 
     if list.is_empty() {
         eprintln!("routerctl: WARN: no MAC given.");
         return Ok(());
     }
-    
     list.sort_unstable();
     list.dedup();
 
     if ARGS.verbose {
         println!("routerctl: INFO: MACs are going to be sent:");
-        list.iter().for_each(|m| {
-            println!(" - {}", m);
-        });
+        list.iter().for_each(|m| println!(" - {}", m));
         print!("routerctl: INFO: confirm all the MACs, Ctrl-C to cancel.");
         let _ = std::io::stdout().flush();
         let _ = std::io::stdin().read_line(&mut String::new());
@@ -106,7 +92,7 @@ pub fn macflt_status() -> Result<(), Error> {
 
     // assume that router will always work correctly
     let list =  MACFLT_LIST.captures_iter(&macflt_html)
-        .map(|c| { c[1].to_string() }).collect::<Vec<String>>();
+        .map(|c| c[1].to_string()).collect::<Vec<String>>();
 
     print!(concat!("routerctl: mac filter status:\n",
         "  - status: {}\n",
@@ -126,7 +112,6 @@ pub fn macflt_status() -> Result<(), Error> {
 
 pub fn active_clients() -> Result<(), Error> {
     let laninfo_html = client::get("/laninfo.html")?;
-
     let list: Vec<Vec<Cell>> = CLIENTS_LIST.captures_iter(&laninfo_html).map(|c| {
         c[1].to_string().split("|").map(Cell::new).collect()
     }).collect();
@@ -134,10 +119,8 @@ pub fn active_clients() -> Result<(), Error> {
     let mut table = Table::new();
     table.add_row(row!["ID", "Hostname", "MAC Address", "IP Address", "Conn-Type", "Uptime"]);
 
-    list.iter().for_each(|vc| {
-        table.add_row(Row::new(vc.to_vec()));
-    });
-
+    list.iter().for_each(|vc| { table.add_row(Row::new(vc.to_vec())); });
+    
     table.set_format(*format::consts::FORMAT_CLEAN);
     table.printstd();
     Ok(())

@@ -26,7 +26,7 @@ pub struct Args {
 }
 
 lazy_static! {
-    pub static ref ARGS: Arc<Args> = Arc::new(Args::parse());
+    pub static ref ARGS: Args = Args::parse();
     pub static ref PARSER: Arc<ArgMatches<'static>> = Arc::new(Args::initial());
     pub static ref DEFAULT_BLACK_LIST: String = {
             let mut current_dir = std::env::current_exe().unwrap();
@@ -44,13 +44,10 @@ lazy_static! {
 impl Args {
     pub fn parse() -> Self {
         let mut args: Args = Default::default();
-        if let Some(p) = PARSER.value_of("password") {
-            args.password = p;
-        }
-        else {
-            args.password = "admin";
-        }
+        args.password = PARSER.value_of("password").unwrap_or("admin");
+        args.router = PARSER.value_of("router").unwrap_or(super::ROUTER_DEFAULT_ADDR);
 
+        // can replace this with iter.all->map->collect, but less details
         if let Some(iter) = PARSER.values_of("add_white_list") {
             iter.clone().for_each(|m| {
                 if !super::router::MAC_VALIDATE.is_match(&m) {
@@ -71,6 +68,7 @@ impl Args {
             args.add_black_list = Some(iter.collect());
         }
 
+        // can use unwrap_or, but whatever, iduncare
         if let Some(f) = PARSER.value_of("black_list_file").or(Some(&*DEFAULT_BLACK_LIST)) {
             if Path::new(f).is_file() {
                 // str.split_whitespace > str.lines + str.trim
@@ -90,13 +88,6 @@ impl Args {
             else {
                 println!("routerctl: ERR: '{}' is not a file.", f);
             }
-        }
-
-        if let Some(v) = PARSER.value_of("router") {
-            args.router = v;
-        }
-        else {
-            args.router = super::ROUTER_DEFAULT_ADDR;
         }
 
         if PARSER.is_present("login_only") { args.login_only = true; }
