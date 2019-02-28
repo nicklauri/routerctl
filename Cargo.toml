@@ -1,0 +1,14 @@
+[package]
+name = "routerctl"
+version = "0.1.0"
+authors = ["Nick Lauri <khoanta.96@gmail.com>"]
+edition = "2018"
+
+[profile.release]
+lto = true
+
+[dependencies]
+clap = "*"
+regex = "*"
+lazy_static = "*"
+prettytable-rs = "*"
