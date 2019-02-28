@@ -50,15 +50,11 @@ lazy_static! {
     pub static ref ARGS: Args = Args::parse();
     pub static ref PARSER: Arc<ArgMatches<'static>> = Arc::new(Args::initial());
     pub static ref DEFAULT_BLACK_LIST: String = {
+            // this static var will not check if this path is a valid file.
             let mut current_dir = std::env::current_exe().unwrap();
             current_dir.pop();
             current_dir.push("macs.txt");
-            if current_dir.is_file() {
-                current_dir.to_str().unwrap().to_string()
-            }
-            else {
-                String::new()
-            }
+            current_dir.to_str().unwrap().to_string()
         };
 }
 
@@ -83,7 +79,11 @@ impl Args {
 
 
         // can use unwrap_or, but whatever, iduncare
-        if let Some(f) = PARSER.value_of("black_list_file").or_else(|| Some(&*DEFAULT_BLACK_LIST)) {
+        let mut __use_default_value: bool = false;
+        if let Some(f) = PARSER.value_of("black_list_file")
+            .or_else(|| { __use_default_value=true; Some(&*DEFAULT_BLACK_LIST) })
+        {
+            dbg!(f);
             if Path::new(f).is_file() {
                 // str.split_whitespace > str.lines + str.trim
                 // iter.filter is simple but less details
@@ -99,7 +99,7 @@ impl Args {
                     });
                 args.black_list_file = Some(list);
             }
-            else {
+            else if !__use_default_value {
                 println!("routerctl: ERR: '{}' is not a file.", f);
             }
         }
