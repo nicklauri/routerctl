@@ -83,7 +83,6 @@ impl Args {
         if let Some(f) = PARSER.value_of("black_list_file")
             .or_else(|| { __use_default_value=true; Some(&*DEFAULT_BLACK_LIST) })
         {
-            dbg!(f);
             if Path::new(f).is_file() {
                 // str.split_whitespace > str.lines + str.trim
                 // iter.filter is simple but less details

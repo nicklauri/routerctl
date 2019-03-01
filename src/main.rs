@@ -54,25 +54,6 @@ fn start() -> Result<(), Error> {
         return router::logout();
     }
 
-    if ARGS.enable_macflt {
-        router::login()?;
-        router::macflt_enable()?;
-        return router::logout();
-    }
-
-    if ARGS.disable_macflt {
-        router::login()?;
-        router::macflt_disable()?;
-        return router::logout();
-    }
-
-    if ARGS.show_status {
-        router::login()?;
-        router::macflt_status()?;
-        router::active_clients()?;
-        return router::logout();
-    }
-
     if ARGS.logout {
         return router::logout();
     }
@@ -82,7 +63,22 @@ fn start() -> Result<(), Error> {
         return router::reboot();
     }
 
-    Ok(())
+    router::login()?;
+    // when use option -de: delete current table then add new one
+    if ARGS.disable_macflt {
+        router::macflt_disable()?;
+    }
+
+    if ARGS.enable_macflt {
+        router::macflt_enable()?;
+    }
+
+    if ARGS.show_status {
+        router::macflt_status()?;
+        router::active_clients()?;
+    }
+
+    router::logout()
 }
 
 fn main() {

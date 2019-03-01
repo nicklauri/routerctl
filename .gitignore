@@ -2,6 +2,7 @@
 **/*.rs.bk
 pc.py
 macs_test.txt
+macs.txt
 Cargo.lock
 routerctl.exe
 CHANGE_DEFAULT_PASSWORD_BEFORE_COMMIT.txt
